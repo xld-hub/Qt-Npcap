@@ -20,7 +20,7 @@ void WorkThread::doWork(pcap_t * adhandle)
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
     int res;
-    res = pcap_next_ex(adhandle, &header,&pkt_data);
+//    res = pcap_next_ex(adhandle, &header,&pkt_data);
 
     while ((res = pcap_next_ex(adhandle, &header,&pkt_data))>=0)
     {
