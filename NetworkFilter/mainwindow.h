@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QThread>
+#include "npcap.h"
+#include "workthread.h"
+#include <QPushButton>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -14,8 +18,12 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+public slots:
+    void ThreadStart();
 
 private:
     Ui::MainWindow *ui;
+    QThread *m_workerThread ;
+    QPushButton pushButton;
 };
 #endif // MAINWINDOW_H

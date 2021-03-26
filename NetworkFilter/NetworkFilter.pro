@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    npcap.cpp
+    npcap.cpp \
+    workthread.cpp
 
 HEADERS += \
     mainwindow.h \
-    npcap.h
+    npcap.h \
+    workthread.h
 
 FORMS += \
     mainwindow.ui
