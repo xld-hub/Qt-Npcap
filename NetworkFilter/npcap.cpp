@@ -3,10 +3,10 @@
 Npcap::Npcap()
 {
 }
-BOOL Npcap:: GetAllDevices(pcap_if_t **alldevs)
+BOOL Npcap:: GetAllDevices(pcap_if_t *&alldevs)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
-    if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &*alldevs, errbuf) == -1)
+    if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
         qDebug("Error in pcap_findalldevs: %s\n", errbuf);
         return false;
@@ -60,7 +60,7 @@ string * Npcap:: GerDevicesInfo(pcap_if_t *alldevs,int devnum)
     return str;
 }
 
-BOOL Npcap:: GoChoiceDevices(pcap_if_t **alldevs,int inum,int alldevnum)
+BOOL Npcap:: GoChoiceDevices(pcap_if_t *&alldevs,int inum,int alldevnum)
 {
     //非法选择
     if(inum < 1 || inum > alldevnum)
@@ -73,21 +73,21 @@ BOOL Npcap:: GoChoiceDevices(pcap_if_t **alldevs,int inum,int alldevnum)
     int i;
     for(i=0; i< inum-1 ; i++)
     {
-        *alldevs = (*alldevs)->next;
+        alldevs = alldevs->next;
     }
 
     return true;
 }
 
 
-BOOL Npcap:: PcapFilter(pcap_t **adhandle,pcap_if_t *d,char packet_filter[])
+BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
 {
     u_int netmask;
     struct bpf_program fcode;
 
     char errbuf[PCAP_ERRBUF_SIZE];
     /* 打开适配器 返回adhandle*/
-    *adhandle= pcap_open(
+    adhandle= pcap_open(
                 d->name,  // 设备名
                 65536,     // 要捕捉的数据包的部分
                 // 65535保证能捕获到不同数据链路层上的每个数据包的全部内容
@@ -97,7 +97,7 @@ BOOL Npcap:: PcapFilter(pcap_t **adhandle,pcap_if_t *d,char packet_filter[])
                 errbuf     // 错误缓冲池
             );
 
-    if (*adhandle == NULL)
+    if (adhandle == NULL)
     {
         qDebug("\nUnable to open the adapter. %s is not supported by WinPcap\n",d->name);
         /* 释放设备列表 */
@@ -106,7 +106,7 @@ BOOL Npcap:: PcapFilter(pcap_t **adhandle,pcap_if_t *d,char packet_filter[])
     }
 
     /* 检查数据链路层，为了简单，我们只考虑以太网 */
-    if(pcap_datalink(*adhandle) != DLT_EN10MB)
+    if(pcap_datalink(adhandle) != DLT_EN10MB)
     {
         qDebug("\nThis program works only on Ethernet networks.\n");
         /* 释放设备列表 */
@@ -122,8 +122,8 @@ BOOL Npcap:: PcapFilter(pcap_t **adhandle,pcap_if_t *d,char packet_filter[])
         netmask=0xffffff;
 
 
-    //编译过滤器 char packet_filter[] = "host 172.22.218.82";
-    if (pcap_compile(*adhandle, &fcode, packet_filter, 1, netmask) <0 )
+    //编译过滤器 char packet_filter[] = "host 192.168.204.128";
+    if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
         qDebug("\nUnable to compile the packet filter. Check the syntax.\n");
         /* 释放设备列表 */
@@ -132,7 +132,7 @@ BOOL Npcap:: PcapFilter(pcap_t **adhandle,pcap_if_t *d,char packet_filter[])
     }
 
     //设置过滤器
-    if (pcap_setfilter(*adhandle, &fcode)<0)
+    if (pcap_setfilter(adhandle, &fcode)<0)
     {
         qDebug("\nError setting the filter.\n");
         /* 释放设备列表 */

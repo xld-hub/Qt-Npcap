@@ -13,10 +13,7 @@ void WorkThread::start1()
 }
 void WorkThread::doWork(pcap_t * adhandle)
 {
-//    for (int i = 0; i < 1000; i++)
-//    {
-//        qDebug()<<i;
-//    }
+
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
     int res;
@@ -26,7 +23,7 @@ void WorkThread::doWork(pcap_t * adhandle)
     {
         if(res == 0)
             continue;
-
+        char *data = new char[32];
         struct tm *ltime;
         char timestr[16];
         time_t local_tv_sec;
@@ -43,8 +40,12 @@ void WorkThread::doWork(pcap_t * adhandle)
     //    qDebug("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
 
         /* 获得IP数据包头部的位置 */
-        ih = (ip_header *) (pkt_data +
-            14); //以太网头部长度
+        ih = (ip_header *) (pkt_data +14); //以太网头部长度
+
+        //ping数据
+        data = (char*)(pkt_data + 14 + 20 + 8);
+        qDebug("ip包总长度为 %d,数据为 %s", ntohs(ih->tlen), data);
+
 
         /* 获得UDP首部的位置 */
         ip_len = (ih->ver_ihl & 0xf) * 4;
@@ -55,7 +56,7 @@ void WorkThread::doWork(pcap_t * adhandle)
         dport = ntohs( uh->dport );
 
         /* 打印IP地址和UDP端口 */
-        qDebug("%d.%d.%d.%d.%d ---> %d.%d.%d.%d.%d\n",
+        qDebug("源IP %d.%d.%d.%d.%d ---> 目的IP %d.%d.%d.%d.%d\n",
             ih->saddr.byte1,
             ih->saddr.byte2,
             ih->saddr.byte3,
@@ -71,5 +72,6 @@ void WorkThread::doWork(pcap_t * adhandle)
     {
         qDebug("接受数据帧错误: %s",pcap_geterr(adhandle));
     }
+
     emit workFinished();
 }

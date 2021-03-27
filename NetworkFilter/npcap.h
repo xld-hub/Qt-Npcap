@@ -15,7 +15,7 @@ class Npcap
 public:
     Npcap();
     //获取所有设备
-    BOOL GetAllDevices(pcap_if_t **alldevs);
+    BOOL GetAllDevices(pcap_if_t *&alldevs);
 
     //获取设备信息
     /*
@@ -39,11 +39,11 @@ public:
     string *GerDevicesInfo(pcap_if_t *alldevs,int devnum);
 
     //跳转到指定设备
-    BOOL GoChoiceDevices(pcap_if_t **alldevs,int inum,int alldevnum);
+    BOOL GoChoiceDevices(pcap_if_t *&alldevs,int inum,int alldevnum);
 
 
     //开始捕获数据包
-    BOOL PcapFilter(pcap_t **adhandle, pcap_if_t *d,char packet_filter[]);
+    BOOL PcapFilter(pcap_t *&adhandle, pcap_if_t *d,char packet_filter[]);
 
 
 };

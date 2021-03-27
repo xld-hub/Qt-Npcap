@@ -54,6 +54,7 @@ signals:
 
 private:
     pcap_t *m_adhandle;
+
 };
 
 #endif // WORKTHREAD_H

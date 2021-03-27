@@ -3,9 +3,12 @@
 
 #include <QMainWindow>
 #include <QThread>
+
 #include "npcap.h"
 #include "workthread.h"
+
 #include <QPushButton>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,6 +27,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     QThread *m_workerThread ;
-    QPushButton pushButton;
+
+
 };
 #endif // MAINWINDOW_H
