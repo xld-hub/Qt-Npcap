@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(worker, &WorkThread::packetcome,this, &MainWindow::SetTable);
     //销毁线程
     connect(worker, &WorkThread::workFinished, worker, &WorkThread::deleteLater);
-    connect(worker, &WorkThread::destroyed, m_workerThread, &QThread::quit);
+//    connect(worker, &WorkThread::destroyed, m_workerThread, &QThread::quit);
     connect(m_workerThread, &QThread::finished, m_workerThread, &QThread::deleteLater);
 }
 
