@@ -14,8 +14,11 @@ class Npcap
 {
 public:
     Npcap();
+    ~Npcap();
+    //初始化操作
+    void init();
     //获取所有设备
-    BOOL GetAllDevices(pcap_if_t *&alldevs);
+    BOOL GetAllDevices();
 
     //获取设备信息
     /*
@@ -36,16 +39,31 @@ public:
      *          printf("%d. %s\n",j+1,s[j].c_str());
      *      }
     */
-    string *GerDevicesInfo(pcap_if_t *alldevs,int devnum);
+    BOOL GetDevicesInfo();
 
     //跳转到指定设备
-    BOOL GoChoiceDevices(pcap_if_t *&alldevs,int inum,int alldevnum);
+    BOOL GoChoiceDevices(int choicenum);
 
 
-    //开始捕获数据包
-    BOOL PcapFilter(pcap_t *&adhandle, pcap_if_t *d,char packet_filter[]);
+    //设置过滤器
+    pcap_t * SetPcapFilter(const char packet_filter[]);
+
+    //设置用户选择
+    void SetChoiceNum(int con_choice_dev);
+
+    //返回设备描述
+    string * GetDevString();
+    //返回设备总数
+    int GetTotalNum();
 
 
+private:
+    pcap_if_t *alldevs;
+    pcap_if_t *d;
+    pcap_t *adhandle;
+    int total_dev;
+    int choice_dev;
+    string *s;
 };
 
 #endif // NPCAP_H

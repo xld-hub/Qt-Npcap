@@ -1,10 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-void MainWindow::ThreadStart()
-{
-    m_workerThread->start();
-}
+#include "Header.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,50 +8,37 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->tableWidget->setColumnWidth(0,50);
-    ui->tableWidget->setColumnWidth(1,200);
 
-    Npcap npcap;
-    pcap_if_t *alldevs;
-    npcap.GetAllDevices(alldevs);
+    ui->tableWidget->setColumnWidth(0,200);
 
-    pcap_if_t *d;
-    int i = 0;
-    for(d = alldevs; d; d=d->next)
-      i++;
-    //获取设备描述
-    string *s = npcap.GerDevicesInfo(alldevs,i);
 
-    for (int j = 0; j < i; j++)
+
+
+    npcap.init();
+    int totalnum = npcap.GetTotalNum();
+
+    string *s = npcap.GetDevString();
+    //下拉框
+    for (int j = 0; j < totalnum; j++)
     {
-        qDebug("%d. %s\n",j+1,s[j].c_str());
+        ui->comboBox->addItem(s[j].c_str());
     }
-    int inum;
-    inum = 3;
-    //选择设备
-    npcap.GoChoiceDevices(alldevs,inum,i);
 
-    //用户输入 过滤字符串
-    char packet_filter[] = "(ip and icmp) and (host 192.168.204.128)";
-    pcap_t *adhandle;
 
-    //设置过滤器
-    npcap.PcapFilter(adhandle,alldevs,packet_filter);
-
-    pcap_freealldevs(alldevs);
 
 
     //开始捕获
 
     m_workerThread = new QThread();
-    WorkThread* worker = new WorkThread();
+    worker = new WorkThread();
     worker->moveToThread(m_workerThread);
 
-    worker->setadhandle(adhandle);
     //开始线程
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::ThreadStart);
     connect(m_workerThread, SIGNAL(started()), worker, SLOT(start1()));
 
+    //设置table
+    connect(worker, &WorkThread::packetcome,this, &MainWindow::SetTable);
     //销毁线程
     connect(worker, &WorkThread::workFinished, worker, &WorkThread::deleteLater);
     connect(worker, &WorkThread::destroyed, m_workerThread, &QThread::quit);
@@ -68,5 +51,49 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+void MainWindow::SetTable(const u_char * pkt_data)
+{
+    int count = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(count);
+    ip_header *ih = (ip_header *) (pkt_data +14);
+    QString saddr =  QString().asprintf("%d.%d.%d.%d",
+        ih->saddr.byte1,
+        ih->saddr.byte2,
+        ih->saddr.byte3,
+        ih->saddr.byte4);
+    QString daddr = QString().asprintf("%d.%d.%d.%d",
+        ih->daddr.byte1,
+        ih->daddr.byte2,
+        ih->daddr.byte3,
+        ih->daddr.byte4);
+    ui->tableWidget->setItem(count,0,new QTableWidgetItem(saddr));
+    ui->tableWidget->setItem(count,1,new QTableWidgetItem(daddr));
+
+}
+void MainWindow::ThreadStart()
+{
+
+    //选择设备
+
+    npcap.GoChoiceDevices(ui->comboBox->currentIndex()+1);
+
+    //用户输入 过滤字符串
+    const char *packet_filter;
+    QByteArray str;
+    str = ui->lineEdit->text().toLatin1();
+    packet_filter = str.data();
+    pcap_t *adhandle;
+
+    //设置过滤器
+    adhandle = npcap.SetPcapFilter(packet_filter);
+
+    worker->setadhandle(adhandle);
+
+    m_workerThread->start();
+
+
+
+}
+
 
 

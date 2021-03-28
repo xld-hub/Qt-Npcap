@@ -2,8 +2,32 @@
 
 Npcap::Npcap()
 {
+    total_dev = 0;
 }
-BOOL Npcap:: GetAllDevices(pcap_if_t *&alldevs)
+Npcap::~Npcap()
+{
+    pcap_freealldevs(d);
+
+}
+void Npcap::init()
+{
+    //获取所有设备
+    GetAllDevices();
+
+
+    for(d = alldevs; d; d=d->next)
+        total_dev++;
+    //获取设备描述
+    GetDevicesInfo();
+    //下拉框
+    for (int j = 0; j < total_dev; j++)
+    {
+        qDebug("%d. %s\n",j+1,s[j].c_str());
+    }
+
+}
+
+BOOL Npcap:: GetAllDevices()
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -14,10 +38,10 @@ BOOL Npcap:: GetAllDevices(pcap_if_t *&alldevs)
     return true;
 }
 
-string * Npcap:: GerDevicesInfo(pcap_if_t *alldevs,int devnum)
+BOOL Npcap:: GetDevicesInfo()
 {
-    pcap_if_t *d;
-    string* str = new string[devnum];
+
+    string* str = new string[total_dev];
     //存入数组
     int i = 0;
     for(d = alldevs; d; d=d->next)
@@ -57,30 +81,32 @@ string * Npcap:: GerDevicesInfo(pcap_if_t *alldevs,int devnum)
         qDebug("\nNo interfaces found! Make sure WinPcap is installed.\n");
         str[0] = "No interfaces found! Make sure WinPcap is installed.";
     }
-    return str;
+    s = str;
+    return true;
 }
 
-BOOL Npcap:: GoChoiceDevices(pcap_if_t *&alldevs,int inum,int alldevnum)
+BOOL Npcap:: GoChoiceDevices(int choicenum)
 {
     //非法选择
-    if(inum < 1 || inum > alldevnum)
+    if(choicenum < 1 || choicenum > total_dev)
     {
         qDebug("\nInterface number out of range.\n");
-        return NULL;
+        return false;
     }
 
     /* 跳转到已选设备 */
     int i;
-    for(i=0; i< inum-1 ; i++)
+    d = alldevs;
+    for(i=0; i< choicenum-1 ; i++)
     {
-        alldevs = alldevs->next;
+        d = d->next;
     }
 
     return true;
 }
 
 
-BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
+pcap_t * Npcap:: SetPcapFilter(const char packet_filter[])
 {
     u_int netmask;
     struct bpf_program fcode;
@@ -102,7 +128,7 @@ BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
         qDebug("\nUnable to open the adapter. %s is not supported by WinPcap\n",d->name);
         /* 释放设备列表 */
         pcap_freealldevs(d);
-        return false;
+        return NULL;
     }
 
     /* 检查数据链路层，为了简单，我们只考虑以太网 */
@@ -111,7 +137,7 @@ BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
         qDebug("\nThis program works only on Ethernet networks.\n");
         /* 释放设备列表 */
         pcap_freealldevs(d);
-        return false;
+        return NULL;
     }
 
     if(d->addresses != NULL)
@@ -128,7 +154,7 @@ BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
         qDebug("\nUnable to compile the packet filter. Check the syntax.\n");
         /* 释放设备列表 */
         pcap_freealldevs(d);
-        return false;
+        return NULL;
     }
 
     //设置过滤器
@@ -137,12 +163,20 @@ BOOL Npcap:: PcapFilter(pcap_t *&adhandle,pcap_if_t *d,char packet_filter[])
         qDebug("\nError setting the filter.\n");
         /* 释放设备列表 */
         pcap_freealldevs(d);
-        return false;
+        return NULL;
     }
 
     qDebug("\nlistening on %s...\n", d->description);
 
-    /* 释放设备列表 */
-//    pcap_freealldevs(d);
-    return true;
+    return adhandle;
+}
+
+string * Npcap:: GetDevString()
+{
+    return s;
+}
+
+int Npcap:: GetTotalNum()
+{
+    return total_dev;
 }

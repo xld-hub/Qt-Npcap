@@ -15,6 +15,7 @@ SOURCES += \
     workthread.cpp
 
 HEADERS += \
+    Header.h \
     mainwindow.h \
     npcap.h \
     workthread.h

@@ -23,10 +23,13 @@ public:
     ~MainWindow();
 public slots:
     void ThreadStart();
-
+    void SetTable(const u_char *);
 private:
+
     Ui::MainWindow *ui;
     QThread *m_workerThread ;
+    WorkThread* worker;
+    Npcap npcap;
 
 
 };

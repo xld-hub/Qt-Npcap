@@ -11,6 +11,10 @@ void WorkThread::start1()
     emit workStart(m_adhandle);
     doWork(m_adhandle);
 }
+void WorkThread::sendpackcome(const u_char * pkt_data)
+{
+    emit(packetcome(pkt_data));
+}
 void WorkThread::doWork(pcap_t * adhandle)
 {
 
@@ -21,8 +25,10 @@ void WorkThread::doWork(pcap_t * adhandle)
 
     while ((res = pcap_next_ex(adhandle, &header,&pkt_data))>=0)
     {
+
         if(res == 0)
             continue;
+        sendpackcome(pkt_data);
         char *data = new char[32];
         struct tm *ltime;
         char timestr[16];
