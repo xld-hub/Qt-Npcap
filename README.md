@@ -1,5 +1,5 @@
 ## Qt + Npcap
-使用qt + npcap写的抓包练习小程序
+使用qt + npcap写的抓包练习工程
 
 Qt 版本 5.15.2 mingw64
 Qt Creator版本  4.14.1
